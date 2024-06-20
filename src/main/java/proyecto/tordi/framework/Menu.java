@@ -1,6 +1,9 @@
 package proyecto.tordi.framework;
 
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Properties;
 import java.util.Scanner;
 
 public class Menu {
@@ -8,6 +11,28 @@ public class Menu {
 
     public Menu(ArrayList<Accion> acciones) {
         this.acciones = acciones;
+    }
+
+    public Menu(String path) {
+        acciones = new ArrayList<>();
+        Properties properties = new Properties();
+        try (InputStream configFile = new FileInputStream(path)) {
+            properties.load(configFile);
+
+            for (String clase : properties.stringPropertyNames()) {
+                String nombreClase = properties.getProperty(clase);
+                try {
+                    Class<?> claseParaAgregar = Class.forName(nombreClase);
+                    Accion accion = (Accion) claseParaAgregar.getConstructor().newInstance();
+                    acciones.add(accion);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    throw new RuntimeException("Error al crear la clase ", e);
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("No pude crear la instancia de TextoAImprimir... ", e);
+        }
     }
 
     public void mostrar() {
