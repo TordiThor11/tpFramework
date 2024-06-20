@@ -5,10 +5,13 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Properties;
 import java.util.Scanner;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class Menu {
     private ArrayList<Accion> acciones;
     private int cantidadMaximaThread;
+    private ExecutorService executor;
 
     public Menu(ArrayList<Accion> acciones) {
         this.acciones = acciones;
@@ -43,11 +46,14 @@ public class Menu {
     }
 
     public void mostrar() {
+        this.executor = Executors.newFixedThreadPool(cantidadMaximaThread);
         var accionesConcurrentes = new ArrayList<Accion>();
         Scanner scanner = new Scanner(System.in);
         int seleccion = 0;
         int cantidadAcciones = acciones.size();
         int indice = 1;
+
+
         //Mostrar opciones
         while (seleccion != cantidadAcciones + 1) {
             indice = 1;
@@ -61,6 +67,7 @@ public class Menu {
             System.out.println("Seleccione una opcion: ");
             seleccion = scanner.nextInt();
 
+            
             //logica
             if (seleccion > 0 && seleccion <= cantidadAcciones + 2) {
                 if (seleccion != cantidadAcciones + 1 && seleccion != cantidadAcciones + 2) {
@@ -74,7 +81,9 @@ public class Menu {
                     if (seleccion == cantidadAcciones + 2) {
                         System.out.println("Ejecutando concurrencia");
                         for (Accion accionConcurrente : accionesConcurrentes) {
-                            accionConcurrente.ejecutar();
+//                            accionConcurrente.ejecutar();
+                            AccionAdapter accionAdapter = new AccionAdapter(accionConcurrente);
+                            executor.submit(accionAdapter);
                         }
                         accionesConcurrentes.clear();
                     } else {
