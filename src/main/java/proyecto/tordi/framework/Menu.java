@@ -8,9 +8,16 @@ import java.util.Scanner;
 
 public class Menu {
     private ArrayList<Accion> acciones;
+    private int cantidadMaximaThread;
 
     public Menu(ArrayList<Accion> acciones) {
         this.acciones = acciones;
+        this.cantidadMaximaThread = 1;
+    }
+
+    public Menu(ArrayList<Accion> acciones, int cantidadMaximaThread) {
+        this.acciones = acciones;
+        this.cantidadMaximaThread = cantidadMaximaThread;
     }
 
     public Menu(String path) {
@@ -36,10 +43,12 @@ public class Menu {
     }
 
     public void mostrar() {
+        var accionesConcurrentes = new ArrayList<Accion>();
         Scanner scanner = new Scanner(System.in);
         int seleccion = 0;
         int cantidadAcciones = acciones.size();
         int indice = 1;
+        //Mostrar opciones
         while (seleccion != cantidadAcciones + 1) {
             indice = 1;
             for (Accion accion : acciones) {
@@ -47,13 +56,30 @@ public class Menu {
                 indice++;
             }
             System.out.println("Opcion " + indice + " - " + "cerrar menu");
+            indice++;
+            System.out.println("Opcion " + indice + " - " + "ejecutar concurrencia");
             System.out.println("Seleccione una opcion: ");
             seleccion = scanner.nextInt();
-            if (seleccion > 0 && seleccion <= cantidadAcciones + 1) {
-                if (seleccion != cantidadAcciones + 1) {
-                    acciones.get(seleccion - 1).ejecutar();
+
+            //logica
+            if (seleccion > 0 && seleccion <= cantidadAcciones + 2) {
+                if (seleccion != cantidadAcciones + 1 && seleccion != cantidadAcciones + 2) {
+//                    acciones.get(seleccion - 1).ejecutar(); //Ejecutar en single-core
+                    if (accionesConcurrentes.size() < cantidadMaximaThread) {
+                        accionesConcurrentes.add(acciones.get(seleccion - 1));
+                    } else {
+                        System.out.println("No se pueden agregar mas de " + cantidadMaximaThread + " hilos");
+                    }
                 } else {
-                    System.out.println("Cerrando menu...");
+                    if (seleccion == cantidadAcciones + 2) {
+                        System.out.println("Ejecutando concurrencia");
+                        for (Accion accionConcurrente : accionesConcurrentes) {
+                            accionConcurrente.ejecutar();
+                        }
+                        accionesConcurrentes.clear();
+                    } else {
+                        System.out.println("Cerrando menu...");
+                    }
                 }
             } else {
                 System.out.println("El valor " + seleccion + " no es valido, ingrese nuevamente...");

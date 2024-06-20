@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="tpFrameworks:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/tpFrameworks_jar</output-path>
+    <root id="archive" name="tpFrameworks.jar">
+      <element id="module-output" name="tpFrameworks" />
+    </root>
+  </artifact>
+</component>
