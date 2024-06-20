@@ -25,21 +25,36 @@ public class Menu {
 
     public Menu(String path) {
         acciones = new ArrayList<>();
+        cantidadMaximaThread = 1; //Single-core por default
         Properties properties = new Properties();
         try (InputStream configFile = new FileInputStream(path)) {
             properties.load(configFile);
 
+            //Agarro la las clases desde el config
             for (String clase : properties.stringPropertyNames()) {
-                String nombreClase = properties.getProperty(clase);
-                try {
-                    Class<?> claseParaAgregar = Class.forName(nombreClase);
-                    Accion accion = (Accion) claseParaAgregar.getConstructor().newInstance();
-                    acciones.add(accion);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    throw new RuntimeException("Error al crear la clase ", e);
+                if (!clase.equals("max-threads")) {
+                    String nombreClase = properties.getProperty(clase);
+                    try {
+                        Class<?> claseParaAgregar = Class.forName(nombreClase);
+                        Accion accion = (Accion) claseParaAgregar.getConstructor().newInstance();
+                        acciones.add(accion);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        throw new RuntimeException("Error al crear la clase ", e);
+                    }
                 }
+
             }
+
+            //Agarro la cantidad maxima de hilos desde el config
+            String maxThreadsStr = properties.getProperty("max-threads");
+            if (maxThreadsStr != null) {
+                System.out.println("Cantidad de hilos: " + Integer.parseInt(maxThreadsStr));
+                cantidadMaximaThread = Integer.parseInt(maxThreadsStr);
+            } else {
+                System.out.println("maxThread es null");
+            }
+
         } catch (Exception e) {
             throw new RuntimeException("No pude crear la instancia de TextoAImprimir... ", e);
         }
@@ -64,10 +79,11 @@ public class Menu {
             System.out.println("Opcion " + indice + " - " + "cerrar menu");
             indice++;
             System.out.println("Opcion " + indice + " - " + "ejecutar concurrencia");
+
+            //Se lee el valor de seleccion
             System.out.println("Seleccione una opcion: ");
             seleccion = scanner.nextInt();
 
-            
             //logica
             if (seleccion > 0 && seleccion <= cantidadAcciones + 2) {
                 if (seleccion != cantidadAcciones + 1 && seleccion != cantidadAcciones + 2) {
@@ -81,7 +97,6 @@ public class Menu {
                     if (seleccion == cantidadAcciones + 2) {
                         System.out.println("Ejecutando concurrencia");
                         for (Accion accionConcurrente : accionesConcurrentes) {
-//                            accionConcurrente.ejecutar();
                             AccionAdapter accionAdapter = new AccionAdapter(accionConcurrente);
                             executor.submit(accionAdapter);
                         }
