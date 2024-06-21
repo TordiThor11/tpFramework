@@ -1,0 +1,7 @@
+{
+  "acciones": [
+    "proyecto.tordi.utilizacion.PrimerAccion",
+    "proyecto.tordi.utilizacion.SegundaAccion"
+  ],
+  "max-threads": 2
+}

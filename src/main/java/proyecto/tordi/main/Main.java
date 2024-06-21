@@ -19,6 +19,7 @@ public class Main {
 
         var start = new Start(new Menu("src/main/java/proyecto/tordi/utilizacion/config.properties"));
 //        var start = new Start(new Menu(acciones, 2));
+//        var start = new Start(new Menu("src/main/java/proyecto/tordi/utilizacion/config.json"));
         start.init();
     }
 }

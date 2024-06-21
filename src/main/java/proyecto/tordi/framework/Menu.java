@@ -1,6 +1,11 @@
 package proyecto.tordi.framework;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Properties;
@@ -26,6 +31,48 @@ public class Menu {
     public Menu(String path) {
         acciones = new ArrayList<>();
         cantidadMaximaThread = 1; //Single-core por default
+        if (path.endsWith(".properties")) {
+            cargarDatosDesdeProperties(path);
+        }
+        if (path.endsWith(".json")) {
+            cargarDatosDesdeJson(path);
+        } else {
+            System.out.println("Se quiere cargar los datos desde otro lado que no sea properties o json");
+        }
+
+    }
+
+    private void cargarDatosDesdeJson(String path) { //Carga las acciones y la cantidad maxima de threads. Si no aclara, threads=1 por defecto.
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            JsonNode root = mapper.readTree(new File(path));
+
+            //Cargo las clases
+            JsonNode accionesNode = root.path("acciones");
+            for (JsonNode accionNode : accionesNode) {
+                String accionClassName = accionNode.asText();
+                try {
+                    Class<?> accionClass = Class.forName(accionClassName);
+                    Accion accion = (Accion) accionClass.getDeclaredConstructor().newInstance();
+                    acciones.add(accion);
+                } catch (Exception e) {
+                    System.out.println("Error cargando la clase: " + accionClassName);
+                    e.printStackTrace();
+                }
+            }
+
+            //Cargo la cantidad maxima de hilos
+            JsonNode threadsNode = root.path("max-threads");
+            this.cantidadMaximaThread = threadsNode.asInt();
+
+        } catch (IOException e) {
+            System.out.println("Error leyendo el archivo de configuración Json: " + path);
+            e.printStackTrace();
+        }
+    }
+
+
+    private void cargarDatosDesdeProperties(String path) {  //Carga las acciones y la cantidad maxima de threads. Si no aclara, threads=1 por defecto.
         Properties properties = new Properties();
         try (InputStream configFile = new FileInputStream(path)) {
             properties.load(configFile);
@@ -49,7 +96,7 @@ public class Menu {
             //Agarro la cantidad maxima de hilos desde el config
             String maxThreadsStr = properties.getProperty("max-threads");
             if (maxThreadsStr != null) {
-                System.out.println("Cantidad de hilos: " + Integer.parseInt(maxThreadsStr));
+
                 cantidadMaximaThread = Integer.parseInt(maxThreadsStr);
             } else {
                 System.out.println("maxThread es null");
@@ -68,6 +115,7 @@ public class Menu {
         int cantidadAcciones = acciones.size();
         int indice = 1;
 
+        System.out.println("Cantidad de hilos: " + this.cantidadMaximaThread);
 
         //Mostrar opciones
         while (seleccion != cantidadAcciones + 1) {
@@ -116,6 +164,7 @@ public class Menu {
 
                     } else {
                         System.out.println("Cerrando menu...");
+                        executor.shutdown();
                     }
                 }
             } else {
