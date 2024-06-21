@@ -42,15 +42,15 @@ public class Menu {
 
     }
 
-    private static boolean ejecutarConcurrencia(int seleccion, int cantidadAcciones) {
+    private boolean seSeleccionoEjecutarAccionesEnEspera(int seleccion, int cantidadAcciones) {
         return seleccion == cantidadAcciones + 2;
     }
 
-    private static boolean seSeleccionoUnaAccion(int seleccion, int cantidadAcciones) {
+    private boolean seSeleccionoUnaAccion(int seleccion, int cantidadAcciones) {
         return seleccion != cantidadAcciones + 1 && seleccion != cantidadAcciones + 2;
     }
 
-    private static boolean esRangoValido(int seleccion, int cantidadAcciones) {
+    private boolean esRangoValido(int seleccion, int cantidadAcciones) {
         return seleccion > 0 && seleccion <= cantidadAcciones + 2;
     }
 
@@ -120,7 +120,7 @@ public class Menu {
 
     public void mostrar() {
         this.executor = Executors.newFixedThreadPool(cantidadMaximaThread);
-        var accionesConcurrentes = new ArrayList<Accion>();
+        var accionesEnEspera = new ArrayList<Accion>();
         Scanner scanner = new Scanner(System.in);
         int seleccion = 0;
         int cantidadAcciones = acciones.size();
@@ -140,28 +140,25 @@ public class Menu {
             //logica
             if (esRangoValido(seleccion, cantidadAcciones)) {
                 if (seSeleccionoUnaAccion(seleccion, cantidadAcciones)) {
-                    if (accionesConcurrentes.size() < cantidadMaximaThread) {
-                        accionesConcurrentes.add(acciones.get(seleccion - 1));
-                    } else {
-                        System.out.println("No se pueden agregar mas de " + cantidadMaximaThread + " hilos");
-                    }
+                    accionesEnEspera.add(acciones.get(seleccion - 1));
                 } else {
-                    if (ejecutarConcurrencia(seleccion, cantidadAcciones)) {
+                    if (seSeleccionoEjecutarAccionesEnEspera(seleccion, cantidadAcciones)) {
 
-                        System.out.println("Ejecutando concurrencia");
+                        System.out.println("Ejecutando...");
                         var accionesConcurrentesAdapter = new ArrayList<AccionAdapter>();
-                        for (Accion accionConcurrente : accionesConcurrentes) {
-                            accionesConcurrentesAdapter.add(new AccionAdapter(accionConcurrente));
+                        while (!accionesEnEspera.isEmpty()) {
+                            while (!accionesEnEspera.isEmpty()) {
+                                accionesConcurrentesAdapter.add(new AccionAdapter(accionesEnEspera.getFirst()));
+                                accionesEnEspera.removeFirst();
+                            }
+                            try {
+                                executor.invokeAll(accionesConcurrentesAdapter);
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                                throw new RuntimeException(e);
+                            }
+                            accionesConcurrentesAdapter.clear();
                         }
-
-                        try {
-                            executor.invokeAll(accionesConcurrentesAdapter);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                            throw new RuntimeException(e);
-                        }
-                        accionesConcurrentesAdapter.clear();
-                        accionesConcurrentes.clear();
 
                     } else {
                         System.out.println("Cerrando menu...");
