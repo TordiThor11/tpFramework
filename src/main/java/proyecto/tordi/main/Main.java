@@ -1,7 +1,6 @@
 package proyecto.tordi.main;
 
 import proyecto.tordi.framework.Accion;
-import proyecto.tordi.framework.Menu;
 import proyecto.tordi.framework.Start;
 import proyecto.tordi.utilizacion.PrimerAccion;
 import proyecto.tordi.utilizacion.SegundaAccion;
@@ -17,9 +16,9 @@ public class Main {
 //        acciones.add(new PrimerAccion());
 
 
-        var start = new Start(new Menu("src/main/java/proyecto/tordi/utilizacion/config.properties"));
-//        var start = new Start(new Menu(acciones, 2));
-//        var start = new Start(new Menu("src/main/java/proyecto/tordi/utilizacion/config.json"));
+//        var start = new Start("src/main/java/proyecto/tordi/utilizacion/config.properties");
+//        var start = new Start(acciones);
+        var start = new Start("src/main/java/proyecto/tordi/utilizacion/config.json");
         start.init();
     }
 }
