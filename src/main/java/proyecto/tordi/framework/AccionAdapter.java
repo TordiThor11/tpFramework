@@ -1,14 +1,22 @@
 package proyecto.tordi.framework;
 
-public class AccionAdapter implements Runnable {
+import java.util.concurrent.Callable;
+
+public class AccionAdapter implements Callable<Void> {
     private Accion accion;
 
     public AccionAdapter(Accion accion) {
         this.accion = accion;
     }
 
+//    @Override //sobreescritura de runnable
+//    public void run() {
+//        accion.ejecutar();
+//    }
+
     @Override
-    public void run() {
+    public Void call() throws Exception {
         accion.ejecutar();
+        return null;
     }
 }

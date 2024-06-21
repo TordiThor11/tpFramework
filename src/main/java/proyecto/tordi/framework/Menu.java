@@ -95,12 +95,25 @@ public class Menu {
                     }
                 } else {
                     if (seleccion == cantidadAcciones + 2) {
+
+
                         System.out.println("Ejecutando concurrencia");
+                        var accionesConcurrentesAdapter = new ArrayList<AccionAdapter>();
                         for (Accion accionConcurrente : accionesConcurrentes) {
-                            AccionAdapter accionAdapter = new AccionAdapter(accionConcurrente);
-                            executor.submit(accionAdapter);
+                            accionesConcurrentesAdapter.add(new AccionAdapter(accionConcurrente));
+//                            executor.submit(accionAdapter);
                         }
+
+                        try {
+                            executor.invokeAll(accionesConcurrentesAdapter);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                            throw new RuntimeException(e);
+                        }
+                        accionesConcurrentesAdapter.clear();
                         accionesConcurrentes.clear();
+
+
                     } else {
                         System.out.println("Cerrando menu...");
                     }
