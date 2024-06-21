@@ -8,12 +8,7 @@ public class AccionAdapter implements Callable<Void> {
     public AccionAdapter(Accion accion) {
         this.accion = accion;
     }
-
-//    @Override //sobreescritura de runnable
-//    public void run() {
-//        accion.ejecutar();
-//    }
-
+    
     @Override
     public Void call() throws Exception {
         accion.ejecutar();

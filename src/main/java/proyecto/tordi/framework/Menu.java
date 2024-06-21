@@ -42,6 +42,18 @@ public class Menu {
 
     }
 
+    private static boolean ejecutarConcurrencia(int seleccion, int cantidadAcciones) {
+        return seleccion == cantidadAcciones + 2;
+    }
+
+    private static boolean seSeleccionoUnaAccion(int seleccion, int cantidadAcciones) {
+        return seleccion != cantidadAcciones + 1 && seleccion != cantidadAcciones + 2;
+    }
+
+    private static boolean esRangoValido(int seleccion, int cantidadAcciones) {
+        return seleccion > 0 && seleccion <= cantidadAcciones + 2;
+    }
+
     private void cargarDatosDesdeJson(String path) { //Carga las acciones y la cantidad maxima de threads. Si no aclara, threads=1 por defecto.
         ObjectMapper mapper = new ObjectMapper();
         try {
@@ -70,7 +82,6 @@ public class Menu {
             e.printStackTrace();
         }
     }
-
 
     private void cargarDatosDesdeProperties(String path) {  //Carga las acciones y la cantidad maxima de threads. Si no aclara, threads=1 por defecto.
         Properties properties = new Properties();
@@ -119,37 +130,28 @@ public class Menu {
 
         //Mostrar opciones
         while (seleccion != cantidadAcciones + 1) {
-            indice = 1;
-            for (Accion accion : acciones) {
-                System.out.println("Opcion " + indice + " - " + accion.nombreItemMenu() + " " + accion.descripcionItemMenu());
-                indice++;
-            }
-            System.out.println("Opcion " + indice + " - " + "cerrar menu");
-            indice++;
-            System.out.println("Opcion " + indice + " - " + "ejecutar concurrencia");
+
+            desplegarMenu();
 
             //Se lee el valor de seleccion
             System.out.println("Seleccione una opcion: ");
             seleccion = scanner.nextInt();
 
             //logica
-            if (seleccion > 0 && seleccion <= cantidadAcciones + 2) {
-                if (seleccion != cantidadAcciones + 1 && seleccion != cantidadAcciones + 2) {
-//                    acciones.get(seleccion - 1).ejecutar(); //Ejecutar en single-core
+            if (esRangoValido(seleccion, cantidadAcciones)) {
+                if (seSeleccionoUnaAccion(seleccion, cantidadAcciones)) {
                     if (accionesConcurrentes.size() < cantidadMaximaThread) {
                         accionesConcurrentes.add(acciones.get(seleccion - 1));
                     } else {
                         System.out.println("No se pueden agregar mas de " + cantidadMaximaThread + " hilos");
                     }
                 } else {
-                    if (seleccion == cantidadAcciones + 2) {
-
+                    if (ejecutarConcurrencia(seleccion, cantidadAcciones)) {
 
                         System.out.println("Ejecutando concurrencia");
                         var accionesConcurrentesAdapter = new ArrayList<AccionAdapter>();
                         for (Accion accionConcurrente : accionesConcurrentes) {
                             accionesConcurrentesAdapter.add(new AccionAdapter(accionConcurrente));
-//                            executor.submit(accionAdapter);
                         }
 
                         try {
@@ -161,7 +163,6 @@ public class Menu {
                         accionesConcurrentesAdapter.clear();
                         accionesConcurrentes.clear();
 
-
                     } else {
                         System.out.println("Cerrando menu...");
                         executor.shutdown();
@@ -172,5 +173,17 @@ public class Menu {
             }
         }
         scanner.close();
+    }
+
+    private void desplegarMenu() {
+        int indice;
+        indice = 1;
+        for (Accion accion : acciones) {
+            System.out.println("Opcion " + indice + " - " + accion.nombreItemMenu() + " " + accion.descripcionItemMenu());
+            indice++;
+        }
+        System.out.println("Opcion " + indice + " - " + "cerrar menu");
+        indice++;
+        System.out.println("Opcion " + indice + " - " + "ejecutar concurrencia");
     }
 }
